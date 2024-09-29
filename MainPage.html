@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+        <title> </title>
+	<link rel="stylesheet" href="styles.css">
+	<script src="https://kit.fontawesome.com/b99e675b6e.js"></script>
+	<!-- jQuery -->
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <!-- SideBar-Menu CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+
+	<!-- Demo CSS -->
+	<link rel="stylesheet" href="css/demo.css">
+    
+	<script>
+		$(document).ready(function(){
+			$(".hamburger .hamburger__inner").click(function(){
+			  $(".wrapper").toggleClass("active")
+			})
+
+			$(".top_navbar .fas").click(function(){
+			   $(".profile_dd").toggleClass("active");
+			});
+		})
+	</script>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="top_navbar">
+    <div class="hamburger">
+       <div class="hamburger__inner">
+         <div class="one"></div>
+         <div class="two"></div>
+         <div class="three"></div>
+       </div>
+    </div>
+    <div class="menu">
+      <div class="logo">
+        <b>Stakeholder Management System Ver01</b>
+      </div>
+      <div class="right_menu">
+        <ul>
+          <li><i class="fas fa-user"></i>
+            <div class="profile_dd">
+               <div class="dd_item">Profile</div>
+               <div class="dd_item">Change Password</div>
+               <div class="dd_item">Logout</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+    
+  <div class="main_container">
+      <div class="sidebar">
+          <div class="sidebar__inner">
+            <div class="profile">
+              <div class="img">
+                <img src="img/pic2.png" alt="profile_pic">
+              </div>
+              <div class="profile_info">
+                 <p>Welcome</p>
+                 <p class="profile_name">User</p>
+              </div>
+            </div>
+            <ul>
+              <li>
+                <a href="#" class="active">
+                  <span class="icon"><i class="fas fa-dice-d6"></i></span>
+                  <span class="title">Menu</span>
+		  
+		       <p><a href="PHTCI.html">PHTCI</a></p
+                </a>
+              </li>
+              <li>
+		      <p><a href="HotspotsAnalysis.html">Hotspot</a></p
+                </a>
+              </li>
+              <li>
+                <p><a href="https://forms.office.com/r/JtVtLSKdXq">AGM</a></p
+              </li>
+              <li>
+
+                <p><a href="index3.html">SMS</a></p
+              </li>
+             
+            </ul>
+          </div>
+      </div>
+      <div class="container">
+          
+	
+	</header>
+          
+          
+        <div class="item">
+          Welcome to the geography hub, this is the gateway to exploring sample, project support activities, hotspot analysis and hard to count areas. Whether you're a student, educator, or simply passionate about discovering GIS innovations, the application offers a wealth of resources, maps, and insights to fuel your curiosity. Embark on a journey to better understand the earth and the intricate connections that shape our world. It is such an excitement to share this adventure with you!
+        </div>
+        <div class="item">
+          Geography gives support in terms of data support systems in terms of navigation,data collection,field support, analysis and dissemination.
+        </div>
+        <div class="item">
+	 <marquee><p>Current Project : Manual Listings</p></marquee>
+	 Past Projects: Manual Listings,EA Verification,Place Name Update, Master Sample Digitization.
+	 Other:Internal & External User Requests,
+	 Publicity and Field Support
+	 
+        </div>
+ 
+      </div>
+  </div>
+  
+</div>	
+
+
+ 
+
+</body>
+</html>

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bootstrap Dashboard with Enhanced CRUD and Editable Coordinates</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome for Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body {
+      overflow-x: hidden;
+    }
+    /* Sidebar styling */
+    #sidebar {
+      min-width: 250px;
+      max-width: 250px;
+      min-height: 100vh;
+      background: #343a40;
+      color: #fff;
+      transition: all 0.3s;
+      position: fixed;
+    }
+    #sidebar .sidebar-header {
+      padding: 20px;
+      background: #3a4149;
+      text-align: center;
+    }
+    #sidebar ul.components {
+      padding: 20px 0;
+      border-bottom: 1px solid #47748b;
+    }
+    #sidebar ul li a {
+      padding: 10px 20px;
+      font-size: 1.1em;
+      display: block;
+      color: #ddd;
+      text-decoration: none;
+    }
+    #sidebar ul li a:hover {
+      color: #fff;
+      background: #575d63;
+      text-decoration: none;
+    }
+    /* Toggle button */
+    #sidebarCollapse {
+      position: fixed;
+      top: 15px;
+      left: 260px;
+      z-index: 999;
+      background: #343a40;
+      color: #fff;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: left 0.3s;
+    }
+    /* Main content styling */
+    #content {
+      width: calc(100% - 250px);
+      margin-left: 250px;
+      padding: 20px;
+      min-height: 100vh;
+      transition: all 0.3s;
+    }
+    /* Map container */
+    #map {
+      height: 500px;
+      margin-top: 20px;
+    }
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      #sidebar {
+        margin-left: -250px;
+      }
+      #sidebar.active {
+        margin-left: 0;
+      }
+      #sidebarCollapse {
+        left: 15px;
+      }
+      #content {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+    /* Highlight selected table row */
+    tr.selected {
+      background-color: #d1ecf1 !important;
+    }
+    /* Loading spinner */
+    .spinner-border {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-width: 0.2em;
+    }
+  </style>
+</head>
+<body>
+<body bgcolor="green">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="sidebar-header">
+      <h3>Menu</h3>
+<img src="SACoat.png" alt="SA Coat" width="150" height="100">
+    </div>
+    <ul class="list-unstyled components">
+      <li class="active">
+        <a href="#home" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Home</a>
+      </li>
+      <li>
+        <a href="#tableSection">STAKEHOLDER TABLE</a>
+      </li>
+      <li>
+        <a href="#mapSection">OpenStreetMap</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Toggle Button -->
+  <button type="button" id="sidebarCollapse" class="btn">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Page Content -->
+  <div id="content">
+    <center><h2 id="tableSection">VER01</h2></center>
+    <!-- Search Bar -->
+    <div class="mb-3">
+      <input type="text" id="searchInput" class="form-control" placeholder="Search...">
+    </div>
+    <!-- CRUD Table -->
+    <table class="table table-bordered table-hover" id="dataTable">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Surname</th>
+          <th>Organization</th>
+          <th>Contact Number</th>
+          <th>Email Address</th>
+          <th>Address</th>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data Rows Here -->
+      </tbody>
+    </table>
+    <!-- Add/Edit Form Modal -->
+    <button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#dataModal">
+      <i class="fas fa-plus"></i> Add New
+    </button>
+    <!-- Modal -->
+    <div class="modal fade" id="dataModal" tabindex="-1" aria-labelledby="dataModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form id="dataForm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="dataModalLabel">Add New Entry</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="entryId">
+              <div class="mb-3">
+                <label for="entryName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="entryName" required>
+              </div>
+              <div class="mb-3">
+                <label for="entrySurname" class="form-label">Surname</label>
+                <input type="text" class="form-control" id="entrySurname" required>
+              </div>
+              <div class="mb-3">
+                <label for="entryOrganization" class="form-label">Organization</label>
+                <input type="text" class="form-control" id="entryOrganization" required>
+              </div>
+              <div class="mb-3">
+                <label for="entryContact" class="form-label">Contact Number</label>
+                <input type="tel" class="form-control" id="entryContact" pattern="^\+?[0-9\s\-]{7,15}$" required>
+                <div class="form-text">Enter a valid contact number (e.g., +1234567890).</div>
+              </div>
+              <div class="mb-3">
+                <label for="entryEmail" class="form-label">Email Address</label>
+                <input type="email" class="form-control" id="entryEmail" required>
+              </div>
+              <div class="mb-3">
+                <label for="entryAddress" class="form-label">Address</label>
+                <input type="text" class="form-control" id="entryAddress" required>
+              </div>
+              <div class="mb-3">
+                <label for="entryLat" class="form-label">Latitude</label>
+                <!-- Latitude Editable -->
+                <input type="number" step="any" class="form-control" id="entryLat" required>
+              </div>
+              <div class="mb-3">
+                <label for="entryLng" class="form-label">Longitude</label>
+                <!-- Longitude Editable -->
+                <input type="number" step="any" class="form-control" id="entryLng" required>
+              </div>
+              <!-- Loading Indicator -->
+              <div id="loadingIndicator" class="text-center d-none">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Geocoding address...</p>
+              </div>
+              <!-- Error Message -->
+              <div id="errorMessage" class="alert alert-danger d-none" role="alert">
+                Failed to geocode the address. Please enter a valid address.
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Save</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- OpenStreetMap Section -->
+    <h2 id="mapSection">Map Index</h2>
+    <div id="map"></div>
+<body bgcolor="green">
+  </div>
+
+  <!-- Bootstrap JS, Popper.js, and jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    $(document).ready(function() {
+      // Initialize data
+      let data = JSON.parse(localStorage.getItem('crudData')) || [
+        {id: 1, name: 'John', surname: 'Doe', organization: 'Acme Corp', contact: '+1234567890', email: 'john.doe@example.com', address: '10 Downing St, London', lat: 51.5034, lng: -0.1276},
+        {id: 2, name: 'Jane', surname: 'Smith', organization: 'Beta Ltd', contact: '+1987654321', email: 'jane.smith@example.com', address: '1600 Pennsylvania Ave NW, Washington, DC', lat: 38.8977, lng: -77.0365},
+        {id: 3, name: 'Alice', surname: 'Johnson', organization: 'Gamma Inc', contact: '+1123456789', email: 'alice.johnson@example.com', address: 'Eiffel Tower, Paris', lat: 48.8584, lng: 2.2945},
+      ];
+
+      let currentId = data.length ? Math.max(...data.map(item => item.id)) + 1 : 1;
+
+      // Initialize Leaflet map
+      let map = L.map('map').setView([20, 0], 2);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      let markers = L.layerGroup().addTo(map);
+      let markerMap = {}; // To keep track of markers by id
+
+      // Function to render table
+      function renderTable(filter = '') {
+        let tbody = $('#dataTable tbody');
+        tbody.empty();
+        let filteredData = data.filter(item => 
+          item.name.toLowerCase().includes(filter.toLowerCase()) ||
+          item.surname.toLowerCase().includes(filter.toLowerCase()) ||
+          item.organization.toLowerCase().includes(filter.toLowerCase()) ||
+          item.contact.toLowerCase().includes(filter.toLowerCase()) ||
+          item.email.toLowerCase().includes(filter.toLowerCase()) ||
+          item.address.toLowerCase().includes(filter.toLowerCase()) ||
+          item.id.toString().includes(filter) ||
+          item.lat.toString().includes(filter) ||
+          item.lng.toString().includes(filter)
+        );
+        filteredData.forEach(item => {
+          tbody.append(`
+            <tr data-id="${item.id}">
+              <td>${item.id}</td>
+              <td>${item.name}</td>
+              <td>${item.surname}</td>
+              <td>${item.organization}</td>
+              <td>${item.contact}</td>
+              <td>${item.email}</td>
+              <td>${item.address}</td>
+              <td>${item.lat}</td>
+              <td>${item.lng}</td>
+              <td>
+                <button class="btn btn-sm btn-info edit-btn" data-id="${item.id}" title="Edit"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger delete-btn" data-id="${item.id}" title="Delete"><i class="fas fa-trash"></i></button>
+              </td>
+            </tr>
+          `);
+        });
+        updateMapMarkers(filteredData);
+      }
+
+      // Function to geocode address using Nominatim
+      function geocodeAddress(address) {
+        return $.ajax({
+          url: 'https://nominatim.openstreetmap.org/search',
+          method: 'GET',
+          data: {
+            q: address,
+            format: 'json',
+            limit: 1
+          }
+        });
+      }
+
+      // Function to update map markers based on filtered data
+      function updateMapMarkers(filteredData) {
+        markers.clearLayers();
+        markerMap = {}; // Reset marker map
+        filteredData.forEach(item => {
+          let marker = L.marker([item.lat, item.lng])
+            .bindPopup(`<b>${item.name} ${item.surname}</b><br>${item.organization}<br>${item.address}<br>Contact: ${item.contact}<br>Email: <a href="mailto:${item.email}">${item.email}</a>`)
+            .addTo(markers);
+          markerMap[item.id] = marker;
+        });
+        bindMarkerPopups();
+      }
+
+      // Function to bind marker popups to highlight table rows
+      function bindMarkerPopups() {
+        for (let id in markerMap) {
+          markerMap[id].on('click', function() {
+            $('#dataTable tbody tr').removeClass('selected');
+            $(`#dataTable tbody tr[data-id="${id}"]`).addClass('selected');
+            // Scroll to the selected row
+            $('html, body').animate({
+              scrollTop: $(`#dataTable tbody tr[data-id="${id}"]`).offset().top - 100
+            }, 500);
+          });
+        }
+      }
+
+      // Initial render
+      renderTable();
+
+      // Initial binding
+      bindMarkerPopups();
+
+      // Search functionality
+      $('#searchInput').on('input', function() {
+        let query = $(this).val();
+        renderTable(query);
+      });
+
+      // Add/Edit form submission
+      $('#dataForm').on('submit', function(e) {
+        e.preventDefault();
+        let id = $('#entryId').val();
+        let name = $('#entryName').val().trim();
+        let surname = $('#entrySurname').val().trim();
+        let organization = $('#entryOrganization').val().trim();
+        let contact = $('#entryContact').val().trim();
+        let email = $('#entryEmail').val().trim();
+        let address = $('#entryAddress').val().trim();
+        let lat = parseFloat($('#entryLat').val());
+        let lng = parseFloat($('#entryLng').val());
+
+        // Validate input fields
+        if (!name || !surname || !organization || !contact || !email || !address) {
+          alert('Please fill in all required fields.');
+          return;
+        }
+
+        // Validate email format
+        let emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          alert('Please enter a valid email address.');
+          return;
+        }
+
+        // Validate contact number format
+        let contactRegex = /^\+?[0-9\s\-]{7,15}$/;
+        if (!contactRegex.test(contact)) {
+          alert('Please enter a valid contact number (e.g., +1234567890).');
+          return;
+        }
+
+        // Validate latitude and longitude
+        if (isNaN(lat) || lat < -90 || lat > 90) {
+          alert('Please enter a valid latitude between -90 and 90.');
+          return;
+        }
+        if (isNaN(lng) || lng < -180 || lng > 180) {
+          alert('Please enter a valid longitude between -180 and 180.');
+          return;
+        }
+
+        // Show loading indicator and hide error message
+        $('#loadingIndicator').removeClass('d-none');
+        $('#errorMessage').addClass('d-none');
+        $('#dataForm :input').prop('disabled', true);
+        $('#dataModalLabel').text(id ? 'Editing Entry...' : 'Adding Entry...');
+
+        if (!id) {
+          // Adding a new entry
+          geocodeAddress(address).done(function(response) {
+            if (response && response.length > 0) {
+              let geocodedLat = parseFloat(response[0].lat);
+              let geocodedLng = parseFloat(response[0].lon);
+
+              // Optionally, verify if manually entered lat/lng are close to geocoded ones
+              // For this implementation, we'll use manually entered coordinates
+
+              data.push({id: currentId++, name, surname, organization, contact, email, address, lat, lng});
+              // Save to localStorage
+              localStorage.setItem('crudData', JSON.stringify(data));
+
+              // Reset form
+              $('#dataForm')[0].reset();
+              $('#entryId').val('');
+              $('#dataModalLabel').text('Add New Entry');
+              $('#dataModal').modal('hide');
+
+              // Re-enable form inputs and hide loading indicator
+              $('#dataForm :input').prop('disabled', false);
+              $('#loadingIndicator').addClass('d-none');
+
+              // Re-render table with current search query
+              renderTable($('#searchInput').val());
+            } else {
+              // Geocoding failed
+              $('#loadingIndicator').addClass('d-none');
+              $('#errorMessage').removeClass('d-none');
+              $('#dataForm :input').prop('disabled', false);
+              $('#dataModalLabel').text('Add New Entry');
+            }
+          }).fail(function() {
+            // AJAX request failed
+            $('#loadingIndicator').addClass('d-none');
+            $('#errorMessage').removeClass('d-none');
+            $('#dataForm :input').prop('disabled', false);
+            $('#dataModalLabel').text('Add New Entry');
+          });
+        } else {
+          // Editing an existing entry
+          geocodeAddress(address).done(function(response) {
+            if (response && response.length > 0) {
+              let geocodedLat = parseFloat(response[0].lat);
+              let geocodedLng = parseFloat(response[0].lon);
+
+              // Update lat and lng based on geocoding
+              lat = geocodedLat;
+              lng = geocodedLng;
+
+              data = data.map(item => item.id == id ? {...item, name, surname, organization, contact, email, address, lat, lng} : item);
+
+              // Save to localStorage
+              localStorage.setItem('crudData', JSON.stringify(data));
+
+              // Reset form
+              $('#dataForm')[0].reset();
+              $('#entryId').val('');
+              $('#dataModalLabel').text('Add New Entry');
+              $('#dataModal').modal('hide');
+
+              // Re-enable form inputs and hide loading indicator
+              $('#dataForm :input').prop('disabled', false);
+              $('#loadingIndicator').addClass('d-none');
+
+              // Re-render table with current search query
+              renderTable($('#searchInput').val());
+            } else {
+              // Geocoding failed
+              $('#loadingIndicator').addClass('d-none');
+              $('#errorMessage').removeClass('d-none');
+              $('#dataForm :input').prop('disabled', false);
+              $('#dataModalLabel').text('Edit Entry');
+            }
+          }).fail(function() {
+            // AJAX request failed
+            $('#loadingIndicator').addClass('d-none');
+            $('#errorMessage').removeClass('d-none');
+            $('#dataForm :input').prop('disabled', false);
+            $('#dataModalLabel').text('Edit Entry');
+          });
+        }
+      });
+
+      // Edit button click
+      $(document).on('click', '.edit-btn', function() {
+        let id = $(this).data('id');
+        let entry = data.find(item => item.id == id);
+        if (entry) {
+          $('#entryId').val(entry.id);
+          $('#entryName').val(entry.name);
+          $('#entrySurname').val(entry.surname);
+          $('#entryOrganization').val(entry.organization);
+          $('#entryContact').val(entry.contact);
+          $('#entryEmail').val(entry.email);
+          $('#entryAddress').val(entry.address);
+          $('#entryLat').val(entry.lat);
+          $('#entryLng').val(entry.lng);
+          $('#dataModalLabel').text('Edit Entry');
+          $('#dataModal').modal('show');
+        }
+      });
+
+      // Delete button click
+      $(document).on('click', '.delete-btn', function() {
+        if(confirm('Are you sure you want to delete this entry?')) {
+          let id = $(this).data('id');
+          data = data.filter(item => item.id != id);
+          localStorage.setItem('crudData', JSON.stringify(data));
+          renderTable($('#searchInput').val());
+        }
+      });
+
+      // Sidebar toggle
+      $('#sidebarCollapse').on('click', function () {
+        $('#sidebar').toggleClass('active');
+        if ($('#sidebar').hasClass('active')) {
+          $('#sidebarCollapse').css('left', '15px');
+          $('#content').css('margin-left', '0');
+        } else {
+          $('#sidebarCollapse').css('left', '260px');
+          $('#content').css('margin-left', '250px');
+        }
+      });
+
+      // Interactive table row click
+      $(document).on('click', '#dataTable tbody tr', function(e) {
+        // Prevent triggering when clicking on buttons
+        if ($(e.target).closest('button').length) {
+          return;
+        }
+        let id = $(this).data('id');
+        let marker = markerMap[id];
+        if (marker) {
+          // Center map on marker and open popup
+          map.setView(marker.getLatLng(), 13);
+          marker.openPopup();
+          // Highlight selected row
+          $('#dataTable tbody tr').removeClass('selected');
+          $(this).addClass('selected');
+        }
+      });
+    });
+  </script>
+<body bgcolor="green">
+</body>
+</html>
